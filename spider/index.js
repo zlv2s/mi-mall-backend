@@ -16,10 +16,24 @@ class Mimall {
       this.getSlideList(),
       this.getSubSlideList(),
       this.getPromoList(),
-      this.getFloorData()
+      this.getFloorData(),
+      this.getChannelList()
     ]).then(res => {
-      const [swiperList, flashSlideList, promoList, goodsFloorData] = res
-      return { swiperList, flashSlideList, promoList, goodsFloorData }
+      const [
+        swiperList,
+        flashSlideList,
+        promoList,
+        goodsFloorData,
+        channelList
+      ] = res
+
+      return {
+        swiperList,
+        flashSlideList,
+        promoList,
+        goodsFloorData,
+        channelList
+      }
     })
   }
 
@@ -70,7 +84,27 @@ class Mimall {
     return swiperList
   }
 
-  async getFloorData() {
+  getChannelList() {
+    const $ = this.$home
+    const channelList = []
+    $('.home-channel-list li').each((i, ele) => {
+      const imgUrl = $(ele).find('a img').attr('src')
+      const value = $(ele).find('a').text().trim()
+      const link = $(ele)
+        .find('a')
+        .attr('href')
+        .replace(/(https?:)?(.*)/, (_, $1, $2) => ($1 ? $1 + $2 : 'https' + $2))
+      channelList.push({
+        imgUrl,
+        link,
+        value
+      })
+    })
+
+    return channelList
+  }
+
+  getFloorData() {
     const $ = this.$home
     let dataObj
     $('script:not([src])').each((i, ele) => {
@@ -84,7 +118,7 @@ class Mimall {
     return dataObj.goodsFloorData
   }
 
-  async getCatList() {
+  getCatList() {
     const $ = this.$home
     const categoryList = []
     $('.category-item').each((i, ele) => {
@@ -112,7 +146,7 @@ class Mimall {
     return categoryList
   }
 
-  async getPromoList() {
+  getPromoList() {
     const $ = this.$home
     const promoList = []
     $('.home-promo-list li').each((i, ele) => {
@@ -125,7 +159,7 @@ class Mimall {
     return promoList
   }
 
-  async getProductDetail(id) {
+  getProductDetail(id) {
     console.log(id)
     const url = `https://api2.order.mi.com/product/view?product_id=${id}&version=2&t=${parseInt(
       Date.now() / 1000
