@@ -160,12 +160,11 @@ class Mimall {
   }
 
   getProductDetail(id) {
-    console.log(id)
     const url = `https://api2.order.mi.com/product/view?product_id=${id}&version=2&t=${parseInt(
       Date.now() / 1000
     )}`
 
-    return axios({
+    const detail = axios({
       url,
       headers: {
         origin: 'https://www.mi.com',
@@ -173,9 +172,43 @@ class Mimall {
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
         referer: 'https://www.mi.com/'
       }
-    }).then(res => {
-      return res.data
+    }).then(res => res.data.data)
+
+    const nav = this.getDetailNav(id)
+
+    return Promise.all([detail, nav]).then(res => {
+      const [detailItem, navItem] = res
+
+      const $ = cheerio.load(navItem)
+      let dataObj
+      $('script:not([src])').each((i, ele) => {
+        let str = $(ele).html().toString()
+        if (str.includes('GLOBAL_PAGE_INFO')) {
+          str = str.replace('var $GLOBAL_PAGE_INFO', 'dataObj')
+          eval(str)
+        }
+      })
+
+      const { left, right } = dataObj
+
+      return {
+        detailItem,
+        left,
+        right
+      }
     })
+  }
+
+  getDetailNav(id) {
+    const url = `https://www.mi.com/buy/detail?product_id=${id}`
+    return axios
+      .get(url, {
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+        }
+      })
+      .then(res => res.data)
   }
 }
 

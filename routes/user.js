@@ -62,7 +62,7 @@ router.post('/signIn', async (req, res) => {
       res.json({
         status: 0,
         message: 'success',
-        data: { token, user: _.omit(user.toObject(), ['password']) }
+        data: { token, userInfo: _.omit(user.toObject(), ['password']) }
       })
     }
   } catch (err) {
