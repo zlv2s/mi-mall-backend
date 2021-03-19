@@ -25,6 +25,30 @@ const userSchema = new mongoose.Schema({
   }
 })
 
+const cartSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    required: true
+  },
+  goodsList: [
+    {
+      goodsId: Number,
+      num: Number,
+      isChecked: {
+        type: Boolean,
+        default: true
+      }
+    }
+  ]
+})
+
+const productSchema = new mongoose.Schema(
+  {},
+  { timestamps: true, strict: false }
+)
+
 module.exports = {
-  User: mongoose.model('User', userSchema)
+  User: mongoose.model('User', userSchema),
+  Cart: mongoose.model('Cart', cartSchema),
+  Product: mongoose.model('Product', productSchema)
 }

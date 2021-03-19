@@ -1,5 +1,7 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
+const db = require('../db')
+const _ = require('lodash')
 
 class Mimall {
   constructor() {
@@ -37,6 +39,7 @@ class Mimall {
     })
   }
 
+  // 秒杀轮播图数据
   async getFlashSlide() {
     const url =
       'https://api2.order.mi.com/flashsale/getslideshow?callback=__jp0'
@@ -53,6 +56,7 @@ class Mimall {
 
   async getHomePage() {
     const url = 'https://www.mi.com/'
+
     const { data } = await axios.get(url, {
       headers: {
         'user-agent':
@@ -159,6 +163,23 @@ class Mimall {
     return promoList
   }
 
+  saveProducts(list) {
+    list = list.map(x => x.goods_info)
+    db.Product.find({}).then(res => {
+      const diff = list.filter(o1 => {
+        if (!res.length) return true
+        return !res
+          .map(x => x.toObject()) //数据库查出来的是文档类型，转换为对象
+          .some(o2 => {
+            // console.log(o2.goods_id, typeof o2.goods_id)
+            return o2.goods_id === o1.goods_id
+          })
+      })
+      console.log(`diff length: ${diff.length}`)
+      diff.length && db.Product.insertMany(diff)
+    })
+  }
+
   getProductDetail(id) {
     const url = `https://api2.order.mi.com/product/view?product_id=${id}&version=2&t=${parseInt(
       Date.now() / 1000
@@ -178,6 +199,8 @@ class Mimall {
 
     return Promise.all([detail, nav]).then(res => {
       const [detailItem, navItem] = res
+
+      this.saveProducts(detailItem.goods_list)
 
       const $ = cheerio.load(navItem)
       let dataObj
@@ -209,6 +232,38 @@ class Mimall {
         }
       })
       .then(res => res.data)
+  }
+
+  getItem(item) {
+    console.log(item)
+    return db.Product.findOne({ goods_id: item.goodsId })
+      .then(res => {
+        const filtered = _.pick(res.toObject(), [
+          'goods_id',
+          'name',
+          'price',
+          'market_price',
+          'img_url'
+        ])
+
+        return {
+          ...filtered,
+          isChecked: item.isChecked,
+          num: item.num,
+          totalPrice: item.num * parseFloat(filtered['price'])
+        }
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  }
+
+  getCartItems(items) {
+    return Promise.all(items.map(item => this.getItem(item)))
+  }
+
+  getCartAll(userId){
+    const { goodsList } = await db.Cart.findOne({ userId })
   }
 }
 

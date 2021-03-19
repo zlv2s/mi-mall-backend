@@ -6,6 +6,7 @@ const expressJwt = require('express-jwt')
 
 const userRoute = require('./routes/user')
 const productRoute = require('./routes/product')
+const cartRoute = require('./routes/cart')
 
 const PORT = process.env.PORT || 3030
 const app = express()
@@ -14,7 +15,11 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use(cors())
+app.use(
+  cors({
+    origin: 'http://localhost:8999'
+  })
+)
 
 app.use(
   expressJwt({
@@ -31,6 +36,7 @@ app.use(
 
 app.use('/api/mi-mall/product', productRoute)
 app.use('/api/mi-mall/user', userRoute)
+app.use('/api/mi-mall/cart', cartRoute)
 
 app.use(function (err, req, res, next) {
   if (err.name === 'UnauthorizedError') {

@@ -1,2 +1,2 @@
-const { User } = require('./model')
-module.exports = { User }
+const { User, Cart, Product } = require('./model')
+module.exports = { User, Cart, Product }
