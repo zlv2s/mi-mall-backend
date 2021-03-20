@@ -239,6 +239,7 @@ class Mimall {
       .then(res => {
         const filtered = _.pick(res.toObject(), [
           'goods_id',
+          'product_id',
           'name',
           'price',
           'market_price',

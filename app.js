@@ -15,11 +15,13 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use(
-  cors({
-    origin: 'http://localhost:8999'
-  })
-)
+// app.use(
+//   cors({
+//     origin: ['http://10.7.183.60:8999', 'http://localhost:8999']
+//   })
+// )
+
+app.use(cors())
 
 app.use(
   expressJwt({
