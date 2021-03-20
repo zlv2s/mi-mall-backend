@@ -2,6 +2,7 @@ const express = require('express')
 const _ = require('lodash')
 const db = require('../db')
 const spider = require('../spider')
+const utils = require('../utils')
 
 const router = express.Router()
 
@@ -18,7 +19,6 @@ router.post('/add', async (req, res) => {
     } else {
       const goods = cart.goodsList.find(item => item.goodsId === goodsId)
       if (goods) {
-        console.log(111, goods)
         goods.num += 1
         cart.markModified('goodsList')
         await cart.save()
@@ -33,20 +33,117 @@ router.post('/add', async (req, res) => {
   }
 })
 
+// 更新商品
+router.post('/update/:goodsId', async (req, res) => {
+  const { goodsId } = req.params
+  const { userId } = req.user
+  const update = req.body
+  const { isCheckedAll, num, isChecked } = update
+  console.log(goodsId, update)
+  if (utils.checkType(isCheckedAll) === 'Boolean' && goodsId === 'all') {
+    const r = await db.Cart.findOneAndUpdate(
+      { userId },
+      {
+        $set: { 'goodsList.$[].isChecked': isCheckedAll }
+      },
+      {
+        new: true
+      }
+    )
+  }
+
+  if (utils.checkType(isChecked) === 'Boolean') {
+    const r = await db.Cart.findOneAndUpdate(
+      { userId, 'goodsList.goodsId': goodsId },
+      {
+        $set: { 'goodsList.$.isChecked': isChecked }
+      },
+      {
+        new: true
+      }
+    )
+  }
+
+  if (utils.checkType(num) === 'Number') {
+    const r = await db.Cart.findOneAndUpdate(
+      {
+        userId,
+        'goodsList.goodsId': goodsId
+      },
+      {
+        $inc: { 'goodsList.$.num': num }
+      },
+      {
+        new: true
+      }
+    )
+
+    await db.Cart.findOneAndUpdate(
+      {
+        userId,
+        goodsList: {
+          $elemMatch: {
+            goodsId: { $eq: goodsId },
+            num: { $lte: 1 }
+          }
+        }
+      },
+      {
+        'goodsList.$.num': 1
+      }
+    )
+
+    await db.Cart.findOneAndUpdate(
+      {
+        userId,
+        goodsList: {
+          $elemMatch: {
+            goodsId: { $eq: goodsId },
+            num: { $gte: 5 }
+          }
+        }
+      },
+      {
+        'goodsList.$.num': 5
+      }
+    )
+  }
+
+  res.json({
+    status: 0,
+    message: 'success',
+    data: null
+  })
+})
+
 // 删除商品
-router.post('/delete/:goodsId', async (req, res) => {
-  // todo
+router.delete('/delete/:goodsId', async (req, res) => {
+  const { goodsId } = req.params
+  const { userId } = req.user
+  const r = await db.Cart.findOneAndUpdate(
+    {
+      userId
+    },
+    {
+      $pull: {
+        goodsList: {
+          goodsId
+        }
+      }
+    }
+  )
+  res.json({
+    status: 0,
+    message: 'success',
+    data: null
+  })
 })
 
 // 获取购物车商品信息
 router.get('/getList', async (req, res) => {
   const { userId } = req.user
 
-  const { goodsList } = await db.Cart.findOne({ userId })
-
-  const cartList = await spider.getCartItems(goodsList)
-
-  console.log(cartList)
+  const cartList = await spider.getCartItems(userId)
 
   res.json({
     status: 0,

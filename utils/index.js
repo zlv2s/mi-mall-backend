@@ -12,6 +12,9 @@ const uuid = () => {
   return uuid
 }
 
+const checkType = value => Object.prototype.toString.call(value).slice(8, -1)
+
 module.exports = {
-  uuid
+  uuid,
+  checkType
 }

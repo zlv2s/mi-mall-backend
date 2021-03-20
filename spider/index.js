@@ -235,7 +235,6 @@ class Mimall {
   }
 
   getItem(item) {
-    console.log(item)
     return db.Product.findOne({ goods_id: item.goodsId })
       .then(res => {
         const filtered = _.pick(res.toObject(), [
@@ -258,12 +257,9 @@ class Mimall {
       })
   }
 
-  getCartItems(items) {
-    return Promise.all(items.map(item => this.getItem(item)))
-  }
-
-  getCartAll(userId){
+  async getCartItems(userId) {
     const { goodsList } = await db.Cart.findOne({ userId })
+    return Promise.all(goodsList.map(item => this.getItem(item)))
   }
 }
 

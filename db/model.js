@@ -40,6 +40,18 @@ const cartSchema = new mongoose.Schema({
       }
     }
   ]
+  // cartList: [
+  //   {
+  //     goods_id: Number,
+  //     name: String,
+  //     price: String,
+  //     market_price: String,
+  //     img_url: String,
+  //     isChecked: Boolean,
+  //     num: Number,
+  //     totalPrice: Number
+  //   }
+  // ]
 })
 
 const productSchema = new mongoose.Schema(
