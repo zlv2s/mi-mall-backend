@@ -152,4 +152,16 @@ router.get('/getList', async (req, res) => {
   })
 })
 
+// 获取购物车推荐列表
+router.get('/recom/:cid', async (req, res) => {
+  const { cid } = req.params
+
+  const data = await spider.getCartRec(111)
+  res.json({
+    status: 0,
+    message: 'success',
+    data
+  })
+})
+
 module.exports = router

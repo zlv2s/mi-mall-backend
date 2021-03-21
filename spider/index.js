@@ -240,6 +240,7 @@ class Mimall {
         const filtered = _.pick(res.toObject(), [
           'goods_id',
           'product_id',
+          'commodity_id',
           'name',
           'price',
           'market_price',
@@ -261,6 +262,39 @@ class Mimall {
   async getCartItems(userId) {
     const { goodsList } = await db.Cart.findOne({ userId })
     return Promise.all(goodsList.map(item => this.getItem(item)))
+  }
+
+  getCartRec(cid) {
+    const url = 'https://api2.order.mi.com/rec/cartrec'
+    const params = {
+      api: '/rec/cartrec',
+      commodity_ids: 2193100002,
+      t: parseInt(Date.now() / 1000)
+    }
+
+    const headers = {
+      origin: 'https://www.mi.com',
+      referer: 'https://www.mi.com/',
+      'user-agent':
+        ' Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+    }
+
+    return axios({
+      url,
+      params,
+      headers
+    })
+      .then(res => {
+        console.log(res.data)
+        if (res.status === 200) {
+          return res.data.data
+        }
+
+        return []
+      })
+      .catch(e => {
+        return []
+      })
   }
 }
 
