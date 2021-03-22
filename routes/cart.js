@@ -33,7 +33,7 @@ router.post('/add', async (req, res) => {
   }
 })
 
-// 更新商品
+// 更新购物车商品 - 数量，是否选中
 router.post('/update/:goodsId', async (req, res) => {
   const { goodsId } = req.params
   const { userId } = req.user
@@ -139,7 +139,7 @@ router.delete('/delete/:goodsId', async (req, res) => {
   })
 })
 
-// 获取购物车商品信息
+// 获取购物车商品列表
 router.get('/getList', async (req, res) => {
   const { userId } = req.user
 
@@ -152,16 +152,53 @@ router.get('/getList', async (req, res) => {
   })
 })
 
-// 获取购物车推荐列表
+// 获取购物车单件商品相关推荐列表
 router.get('/recom/:cid', async (req, res) => {
   const { cid } = req.params
 
-  const data = await spider.getCartRec(111)
+  const data = await spider.getCartRec(cid)
   res.json({
     status: 0,
     message: 'success',
     data
   })
+})
+
+// 根据 gid 获取商品部分字段
+router.get('/getItem/:gid', async (req, res) => {
+  const { userId } = req.user
+  const { gid } = req.params
+
+  const doc = await db.Cart.findOne({
+    userId,
+    'goodsList.goodsId': {
+      $eq: gid
+    }
+  })
+
+  if (doc) {
+    const item = await db.Product.aggregate([
+      { $match: { goods_id: parseFloat(gid) } },
+      {
+        $project: {
+          name: 1,
+          commodity_id: 1
+        }
+      }
+    ])
+
+    res.json({
+      status: 0,
+      message: 'success',
+      data: item
+    })
+  } else {
+    res.json({
+      status: 1,
+      message: 'error',
+      data: '该件商品没有添加到购物车'
+    })
+  }
 })
 
 module.exports = router

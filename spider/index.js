@@ -264,6 +264,8 @@ class Mimall {
     return Promise.all(goodsList.map(item => this.getItem(item)))
   }
 
+  getCartItem(gid) {}
+
   getCartRec(cid) {
     const url = 'https://api2.order.mi.com/rec/cartrec'
     const params = {
