@@ -8,27 +8,36 @@ const router = express.Router()
 
 // 新增商品id
 router.post('/add', async (req, res) => {
-  const { goodsId } = req.body
+  const { goodsId, productId } = req.body
   const { userId } = req.user
+
+  console.log(`add - gid:${goodsId}, pid:${productId}`)
+
+  spider.checkIfProductExist(productId)
 
   try {
     const cart = await db.Cart.findOne({ userId }).exec()
+    // 第一次添加购物车
     if (!cart) {
       console.log('create new')
       await new db.Cart({ userId, goodsList: [{ goodsId, num: 1 }] }).save()
     } else {
+      // 根据 gid 查找
       const goods = cart.goodsList.find(item => item.goodsId === goodsId)
       if (goods) {
+        // 如果存在，数量加1
         goods.num += 1
         cart.markModified('goodsList')
         await cart.save()
       } else {
+        // 不存在，添加
         cart.goodsList.push({ goodsId, num: 1 })
         await cart.save()
       }
     }
     res.json({ status: 0, message: 'success', data: null })
   } catch (error) {
+    console.log(error)
     res.json({ status: 0, message: 'internal error occured', data: null })
   }
 })

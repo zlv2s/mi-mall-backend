@@ -163,6 +163,7 @@ class Mimall {
     return promoList
   }
 
+  // 对比数据库中的数据，若没有则将获取到的数据存入数据库
   saveProducts(list) {
     list = list.map(x => x.goods_info)
     db.Product.find({}).then(res => {
@@ -180,12 +181,12 @@ class Mimall {
     })
   }
 
-  getProductDetail(id) {
-    const url = `https://api2.order.mi.com/product/view?product_id=${id}&version=2&t=${parseInt(
+  getProductView(pid) {
+    const url = `https://api2.order.mi.com/product/view?product_id=${pid}&version=2&t=${parseInt(
       Date.now() / 1000
     )}`
 
-    const detail = axios({
+    return axios({
       url,
       headers: {
         origin: 'https://www.mi.com',
@@ -194,8 +195,25 @@ class Mimall {
         referer: 'https://www.mi.com/'
       }
     }).then(res => res.data.data)
+  }
 
-    const nav = this.getDetailNav(id)
+  getProductDetail(pid) {
+    // const url = `https://api2.order.mi.com/product/view?product_id=${pid}&version=2&t=${parseInt(
+    //   Date.now() / 1000
+    // )}`
+
+    // const detail = axios({
+    //   url,
+    //   headers: {
+    //     origin: 'https://www.mi.com',
+    //     'user-agent':
+    //       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
+    //     referer: 'https://www.mi.com/'
+    //   }
+    // }).then(res => res.data.data)
+
+    const nav = this.getDetailNav(pid)
+    const detail = this.getProductView(pid)
 
     return Promise.all([detail, nav]).then(res => {
       const [detailItem, navItem] = res
@@ -222,8 +240,8 @@ class Mimall {
     })
   }
 
-  getDetailNav(id) {
-    const url = `https://www.mi.com/buy/detail?product_id=${id}`
+  getDetailNav(pid) {
+    const url = `https://www.mi.com/buy/detail?product_id=${pid}`
     return axios
       .get(url, {
         headers: {
@@ -270,7 +288,7 @@ class Mimall {
     const url = 'https://api2.order.mi.com/rec/cartrec'
     const params = {
       api: '/rec/cartrec',
-      commodity_ids: 2193100002,
+      commodity_ids: cid,
       t: parseInt(Date.now() / 1000)
     }
 
@@ -287,7 +305,7 @@ class Mimall {
       headers
     })
       .then(res => {
-        console.log(res.data)
+        // console.log(res.data)
         if (res.status === 200) {
           return res.data.data
         }
@@ -297,6 +315,15 @@ class Mimall {
       .catch(e => {
         return []
       })
+  }
+
+  async checkIfProductExist(pid) {
+    const product = await db.Product.findOne({ product_id: pid })
+    if (!product) {
+      this.getProductView(pid).then(res => {
+        this.saveProducts(res.goods_list)
+      })
+    }
   }
 }
 
