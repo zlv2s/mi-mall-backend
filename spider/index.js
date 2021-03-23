@@ -2,6 +2,7 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 const db = require('../db')
 const _ = require('lodash')
+const { json } = require('express')
 
 class Mimall {
   constructor() {
@@ -198,20 +199,6 @@ class Mimall {
   }
 
   getProductDetail(pid) {
-    // const url = `https://api2.order.mi.com/product/view?product_id=${pid}&version=2&t=${parseInt(
-    //   Date.now() / 1000
-    // )}`
-
-    // const detail = axios({
-    //   url,
-    //   headers: {
-    //     origin: 'https://www.mi.com',
-    //     'user-agent':
-    //       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-    //     referer: 'https://www.mi.com/'
-    //   }
-    // }).then(res => res.data.data)
-
     const nav = this.getDetailNav(pid)
     const detail = this.getProductView(pid)
 
@@ -282,6 +269,54 @@ class Mimall {
     return Promise.all(goodsList.map(item => this.getItem(item)))
   }
 
+  async getCheckedItems(userId) {
+    const data = await db.Cart.aggregate([
+      {
+        $match: {
+          userId
+        }
+      },
+      {
+        $project: {
+          goodsList: {
+            $filter: {
+              input: '$goodsList',
+              as: 'item',
+              cond: { $eq: ['$$item.isChecked', true] }
+            }
+          }
+        }
+      }
+    ])
+
+    const shipFee = 15
+    const discount = 0
+    const coupon = 10
+
+    return Promise.all(data[0].goodsList.map(item => this.getItem(item))).then(
+      res => {
+        return res.reduce(
+          (acc, item) => {
+            acc.totalCount += item.num
+            acc.goodsTotal += item.totalPrice
+            acc.grandTotalPrice += item.totalPrice
+            acc.goodsList.push(item)
+            return acc
+          },
+          {
+            goodsList: [],
+            totalCount: 0,
+            goodsTotal: 0,
+            grandTotalPrice: shipFee - discount - coupon,
+            shipFee,
+            discount,
+            coupon
+          }
+        )
+      }
+    )
+  }
+
   getCartItem(gid) {}
 
   getCartRec(cid) {
@@ -324,6 +359,39 @@ class Mimall {
         this.saveProducts(res.goods_list)
       })
     }
+  }
+
+  async getAddress(kw) {
+    const url = `https://api2.service.order.mi.com/user/search_address_by_keywords?keywords=${kw}&jsonpcallback=searchAddress`
+    const headers = {
+      referer: 'https://www.mi.com/',
+      'user-agent':
+        ' Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+    }
+
+    return axios({ url, headers }).then(res => {
+      const reg = /(?<=searchAddress\()(.*)(?=\);)/
+      // console.log(reg.exec(res.data)[0])
+      return JSON.parse(reg.exec(res.data)[0])
+    })
+  }
+
+  async getAreaInfo({ adcode, location }) {
+    const url = `https://api2.service.order.mi.com/user/get_area_info_by_location?adcode=${adcode}&location=${location}&jsonpcallback=getAreaInfoByLocaltion`
+    const headers = {
+      referer: 'https://www.mi.com/',
+      'user-agent':
+        ' Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+    }
+
+    return axios({
+      url,
+      headers
+    }).then(res => {
+      const reg = /(?<=getAreaInfoByLocaltion\()(.*)(?=\);)/
+      // console.log(reg.exec(res.data)[0])
+      return JSON.parse(reg.exec(res.data)[0])
+    })
   }
 }
 

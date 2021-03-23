@@ -210,4 +210,44 @@ router.get('/getItem/:gid', async (req, res) => {
   }
 })
 
+// 获取选中商品信息
+router.get('/checkout', async (req, res) => {
+  const { userId } = req.user
+
+  const data = await spider.getCheckedItems(userId)
+  res.json({
+    status: 0,
+    message: 'success',
+    data
+  })
+})
+
+// 搜索区域信息
+router.get('/searchAddress', async (req, res) => {
+  const query = req.query
+  console.log(query)
+
+  const addInfo = await spider.getAddress(query.keywords)
+
+  res.json({
+    status: 0,
+    message: 'success',
+    data: addInfo
+  })
+})
+
+// 获取街道信息
+router.get('/getAreaInfo', async (req, res) => {
+  console.log(req.query)
+  const { adcode, location } = req.query
+
+  const addInfo = await spider.getAreaInfo({ adcode, location })
+
+  res.json({
+    status: 0,
+    message: 'success',
+    data: addInfo
+  })
+})
+
 module.exports = router
