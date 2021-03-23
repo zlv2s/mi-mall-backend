@@ -1,2 +1,2 @@
-const { User, Cart, Product, Address } = require('./model')
-module.exports = { User, Cart, Product, Address }
+const { User, Cart, Product, Address, Order, ConfirmOrder } = require('./model')
+module.exports = { User, Cart, Product, Address, Order, ConfirmOrder }

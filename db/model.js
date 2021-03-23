@@ -40,18 +40,6 @@ const cartSchema = new mongoose.Schema({
       }
     }
   ]
-  // cartList: [
-  //   {
-  //     goods_id: Number,
-  //     name: String,
-  //     price: String,
-  //     market_price: String,
-  //     img_url: String,
-  //     isChecked: Boolean,
-  //     num: Number,
-  //     totalPrice: Number
-  //   }
-  // ]
 })
 
 const productSchema = new mongoose.Schema(
@@ -59,7 +47,11 @@ const productSchema = new mongoose.Schema(
   { timestamps: true, strict: false }
 )
 
-const orderSchema = new mongoose.Schema({})
+const orderSchema = new mongoose.Schema({}, { timestamps: true, strict: false })
+const confirmOrderSchema = new mongoose.Schema(
+  {},
+  { timestamps: true, strict: false }
+)
 
 const addressSchema = new mongoose.Schema({
   userId: String,
@@ -92,5 +84,7 @@ module.exports = {
   User: mongoose.model('User', userSchema),
   Cart: mongoose.model('Cart', cartSchema),
   Product: mongoose.model('Product', productSchema),
-  Address: mongoose.model('Address', addressSchema)
+  Address: mongoose.model('Address', addressSchema),
+  Order: mongoose.model('Order', orderSchema),
+  ConfirmOrder: mongoose.model('ConfirmOrder', confirmOrderSchema)
 }

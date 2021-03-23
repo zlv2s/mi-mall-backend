@@ -215,6 +215,7 @@ router.get('/checkout', async (req, res) => {
   const { userId } = req.user
 
   const data = await spider.getCheckedItems(userId)
+  // await db.Order.findOneAndUpdate({ userId }, data, { upsert: true })
   res.json({
     status: 0,
     message: 'success',

@@ -317,8 +317,6 @@ class Mimall {
     )
   }
 
-  getCartItem(gid) {}
-
   getCartRec(cid) {
     const url = 'https://api2.order.mi.com/rec/cartrec'
     const params = {

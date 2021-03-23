@@ -7,6 +7,7 @@ const expressJwt = require('express-jwt')
 const userRoute = require('./routes/user')
 const productRoute = require('./routes/product')
 const cartRoute = require('./routes/cart')
+const orderRoute = require('./routes/order')
 
 const PORT = process.env.PORT || 3030
 const app = express()
@@ -39,6 +40,7 @@ app.use(
 app.use('/api/mi-mall/product', productRoute)
 app.use('/api/mi-mall/user', userRoute)
 app.use('/api/mi-mall/cart', cartRoute)
+app.use('/api/mi-mall/order', orderRoute)
 
 app.use(function (err, req, res, next) {
   if (err.name === 'UnauthorizedError') {
