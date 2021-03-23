@@ -59,8 +59,38 @@ const productSchema = new mongoose.Schema(
   { timestamps: true, strict: false }
 )
 
+const orderSchema = new mongoose.Schema({})
+
+const addressSchema = new mongoose.Schema({
+  userId: String,
+  addressList: [
+    {
+      addressId: {
+        type: String,
+        default: uuid
+      },
+      address: String,
+      address_id: String,
+      address_info: String,
+      area_id: Number,
+      area_name: String,
+      city_id: Number,
+      city_name: String,
+      consignee: String,
+      district_id: Number,
+      district_name: String,
+      province_id: Number,
+      province_name: String,
+      tag_name: String,
+      telephone: String,
+      zipcode: String
+    }
+  ]
+})
+
 module.exports = {
   User: mongoose.model('User', userSchema),
   Cart: mongoose.model('Cart', cartSchema),
-  Product: mongoose.model('Product', productSchema)
+  Product: mongoose.model('Product', productSchema),
+  Address: mongoose.model('Address', addressSchema)
 }

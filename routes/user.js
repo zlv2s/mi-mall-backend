@@ -71,4 +71,101 @@ router.post('/signIn', async (req, res) => {
   }
 })
 
+// 新增地址
+router.post('/addAddress', async (req, res) => {
+  const { userId } = req.user
+  const addressInfo = req.body
+
+  const r = await db.Address.findOneAndUpdate(
+    { userId },
+    {
+      $push: {
+        addressList: {
+          $each: [addressInfo]
+        }
+      }
+    },
+    { upsert: true }
+  )
+  console.log(r)
+  res.json({
+    status: 0,
+    message: 'success',
+    data: r
+  })
+})
+
+// 获取收货地址列表
+router.get('/addressList', async (req, res) => {
+  const { userId } = req.user
+  const data = await db.Address.aggregate([
+    { $match: { userId } },
+    {
+      $project: {
+        addressList: 1,
+        _id: 0
+      }
+    }
+  ])
+  res.json({
+    status: 0,
+    message: 'success',
+    data
+  })
+})
+
+// 删除收货地址
+router.delete('/address/:addressId', async (req, res) => {
+  const { userId } = req.user
+  const { addressId } = req.params
+  const data = await db.Address.findOneAndUpdate(
+    {
+      userId
+    },
+    {
+      $pull: {
+        addressList: {
+          addressId
+        }
+      }
+    },
+    { new: true }
+  )
+
+  res.json({
+    status: 0,
+    message: 'success',
+    data: _.omit(data.toObject(), ['userId', '_id', '_v'])
+  })
+})
+
+// 修改地址
+router.post('/address/:addressId', async (req, res) => {
+  const { userId } = req.user
+  const { addressId } = req.params
+  const update = req.body
+
+  console.log(addressId)
+  console.log(update)
+
+  const data = await db.Address.findOneAndUpdate(
+    {
+      userId,
+      'addressList.addressId': addressId
+    },
+    {
+      'addressList.$': update
+    },
+    {
+      new: true
+    }
+  )
+
+  res.json({
+    status: 0,
+    message: 'success',
+    data: _.omit(data.toObject(), ['userId', '_id', '_v'])
+  })
+})
+
 module.exports = router
