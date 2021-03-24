@@ -246,7 +246,6 @@ router.get('/searchAddress', async (req, res) => {
 
 // 获取街道信息
 router.get('/getAreaInfo', async (req, res) => {
-  console.log(req.query)
   const { adcode, location } = req.query
 
   const addInfo = await spider.getAreaInfo({ adcode, location })
