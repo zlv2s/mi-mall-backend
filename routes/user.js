@@ -20,7 +20,7 @@ router.post('/signUp', async (req, res) => {
   const users = await db.User.find({ username })
   if (users.length) {
     return res.json({
-      status: 0,
+      status: 1,
       message: '用户名已存在！',
       data: null
     })
