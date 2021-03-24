@@ -47,9 +47,34 @@ const productSchema = new mongoose.Schema(
   { timestamps: true, strict: false }
 )
 
-const orderSchema = new mongoose.Schema({}, { timestamps: true, strict: false })
+const orderSchema = new mongoose.Schema(
+  {
+    pOrderList: [
+      {
+        pOid: {
+          type: String,
+          default: uuid
+        }
+      }
+    ]
+  },
+  { timestamps: true, strict: false }
+)
 const confirmOrderSchema = new mongoose.Schema(
-  {},
+  {
+    cOrderList: [
+      {
+        cOid: {
+          type: String,
+          default: uuid
+        },
+        isPaid: {
+          type: Boolean,
+          default: false
+        }
+      }
+    ]
+  },
   { timestamps: true, strict: false }
 )
 

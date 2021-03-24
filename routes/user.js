@@ -17,6 +17,15 @@ router.post('/signUp', async (req, res) => {
 
   const { username, password } = req.body
 
+  const users = await db.User.find({ username })
+  if (users.length) {
+    return res.json({
+      status: 0,
+      message: '用户名已存在！',
+      data: null
+    })
+  }
+
   const user = new db.User({
     username,
     password: bcrypt.hashSync(password, 8)

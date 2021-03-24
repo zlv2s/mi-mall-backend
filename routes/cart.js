@@ -211,11 +211,18 @@ router.get('/getItem/:gid', async (req, res) => {
 })
 
 // 获取选中商品信息
-router.get('/checkout', async (req, res) => {
+router.get('/getCheckout/:pOid', async (req, res) => {
   const { userId } = req.user
-
-  const data = await spider.getCheckedItems(userId)
+  const { pOid } = req.params
+  // const data = await spider.getCheckedItems(userId)
   // await db.Order.findOneAndUpdate({ userId }, data, { upsert: true })
+  const data = await db.Order.findOne(
+    { userId, 'pOrderList.pOid': pOid },
+    {
+      'pOrderList.$': 1,
+      _id: 0
+    }
+  )
   res.json({
     status: 0,
     message: 'success',
