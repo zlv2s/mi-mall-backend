@@ -114,6 +114,14 @@ router.post('/confirm', async (req, res) => {
 router.get('/:cOid', async (req, res) => {
   const { userId } = req.user
   const { cOid } = req.params
+  if (!cOid) {
+    return res.json({
+      status: 1,
+      message: '请求参数不合法！',
+      data: null
+    })
+  }
+
   let r = await db.ConfirmOrder.findOne(
     {
       userId,
@@ -124,30 +132,39 @@ router.get('/:cOid', async (req, res) => {
       _id: 0
     }
   )
-  r = r.cOrderList.map(x => x.toObject()).filter(x => x.cOid === cOid)[0]
-  const { addressId } = r
-  const address = await db.Address.findOne(
-    {
-      userId,
-      'addressList.addressId': addressId
-    },
-    {
-      'addressList.$': 1,
-      _id: 0
-    }
-  )
 
-  res.json({
-    status: 0,
-    message: 'success',
-    data: {
-      orderInfo: {
-        ...r,
-        address: address.addressList[0],
-        orderId: randomNumber()
+  if (r) {
+    r = r.cOrderList.map(x => x.toObject()).filter(x => x.cOid === cOid)[0]
+    const { addressId } = r
+    const address = await db.Address.findOne(
+      {
+        userId,
+        'addressList.addressId': addressId
+      },
+      {
+        'addressList.$': 1,
+        _id: 0
       }
-    }
-  })
+    )
+
+    res.json({
+      status: 0,
+      message: 'success',
+      data: {
+        orderInfo: {
+          ...r,
+          address: address.addressList[0],
+          orderId: randomNumber()
+        }
+      }
+    })
+  } else {
+    return res.json({
+      status: 1,
+      message: '请求参数不合法！',
+      data: null
+    })
+  }
 })
 
 // 选择收货地址
