@@ -41,8 +41,14 @@ router.post('/checkout', async (req, res) => {
 router.post('/confirm', async (req, res) => {
   const { userId } = req.user
   const { action, pOid } = req.body
-
   console.log(action, pOid)
+
+  if (!pOid)
+    return res.json({
+      status: 1,
+      message: '请求参数不合法！',
+      data: null
+    })
 
   if (action === 'confirm') {
     const data = await db.Order.findOne(
@@ -65,7 +71,7 @@ router.post('/confirm', async (req, res) => {
         data: null
       })
     }
-    await db.Order.findOneAndUpdate(
+    const pre = await db.Order.findOneAndUpdate(
       {
         userId,
         'pOrderList.pOid': pOid
@@ -79,7 +85,7 @@ router.post('/confirm', async (req, res) => {
       }
     )
 
-    let r = await db.ConfirmOrder.findOneAndUpdate(
+    let confirm = await db.ConfirmOrder.findOneAndUpdate(
       { userId },
       {
         $push: {
@@ -94,17 +100,26 @@ router.post('/confirm', async (req, res) => {
       }
     )
 
-    r = r.cOrderList.map(x => x.toObject()).filter(x => x.pOid === pOid)[0]
+    const del = await db.Cart.findOneAndUpdate(
+      { userId },
+      {
+        $set: { goodsList: [] }
+      }
+    )
+
+    confirm = confirm.cOrderList
+      .map(x => x.toObject())
+      .filter(x => x.pOid === pOid)[0]
 
     res.json({
       status: 0,
       message: 'success',
-      data: _.pick(r, ['cOid'])
+      data: _.pick(confirm, ['cOid'])
     })
   } else {
     res.json({
       status: 1,
-      message: 'failed',
+      message: '下单失败！',
       data: null
     })
   }
