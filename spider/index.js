@@ -265,8 +265,12 @@ class Mimall {
   }
 
   async getCartItems(userId) {
-    const { goodsList } = await db.Cart.findOne({ userId })
-    return Promise.all(goodsList.map(item => this.getItem(item)))
+    try {
+      const { goodsList } = await db.Cart.findOne({ userId })
+      return Promise.all(goodsList.map(item => this.getItem(item)))
+    } catch (error) {
+      return []
+    }
   }
 
   async getCheckedItems(userId) {
